@@ -1,7 +1,3 @@
-// ============================================================
-// Partido.cpp
-// ============================================================
-
 #include "Partido.h"
 #include <iostream>
 #include <cmath>
@@ -22,29 +18,36 @@ static const float P_FALTA2    = 0.0275f;
 static const float P_FALTA3    = 0.007f;
 
 // Genera un float aleatorio entre 0 y 1
-static float randFloat() {
+static float randFloat()
+{
     return (float)rand() / (float)RAND_MAX;
 }
-
-// ---- Constructor ----
 
 Partido::Partido()
     : fecha(""), hora(""), sede(""),
       equipo1(nullptr), equipo2(nullptr), arbitros(3),
-      ganador(nullptr), prorroga(false), simulado(false) {}
+      ganador(nullptr), prorroga(false), simulado(false)
+{
+
+}
 
 Partido::Partido(string fecha, string hora, string sede,
                  Equipo* eq1, Equipo* eq2)
     : fecha(fecha), hora(hora), sede(sede),
       equipo1(eq1), equipo2(eq2), arbitros(3),
-      ganador(nullptr), prorroga(false), simulado(false) {}
+      ganador(nullptr), prorroga(false), simulado(false)
+{
+
+}
 
 Partido::Partido(const Partido& otro)
     : fecha(otro.fecha), hora(otro.hora), sede(otro.sede),
       equipo1(otro.equipo1), equipo2(otro.equipo2),
       arbitros(3), statsEq1(otro.statsEq1), statsEq2(otro.statsEq2),
-      ganador(otro.ganador), prorroga(otro.prorroga), simulado(otro.simulado) {
-    for (int i = 0; i < otro.arbitros.getTamanio(); i++) {
+      ganador(otro.ganador), prorroga(otro.prorroga), simulado(otro.simulado)
+{
+    for (int i = 0; i < otro.arbitros.getTamanio(); i++)
+    {
         arbitros.agregar(otro.arbitros.obtener(i));
     }
 }
@@ -54,26 +57,72 @@ Partido::~Partido() {
 }
 
 // ---- Getters ----
-string Partido::getFecha() const { return fecha; }
-string Partido::getHora() const  { return hora; }
-string Partido::getSede() const  { return sede; }
-Equipo* Partido::getEquipo1() const { return equipo1; }
-Equipo* Partido::getEquipo2() const { return equipo2; }
-Lista<Arbitro*>& Partido::getArbitros() { return arbitros; }
-EstadisticasPartido& Partido::getStatsEq1() { return statsEq1; }
-EstadisticasPartido& Partido::getStatsEq2() { return statsEq2; }
-Equipo* Partido::getGanador() const { return ganador; }
-bool Partido::isProrroga() const  { return prorroga; }
-bool Partido::isSimulado() const  { return simulado; }
+string Partido::getFecha() const
+{
+    return fecha;
+}
+string Partido::getHora() const
+{
+    return hora;
+}
+string Partido::getSede() const
+{
+    return sede;
+}
+Equipo* Partido::getEquipo1() const
+{
+    return equipo1;
+}
+Equipo* Partido::getEquipo2() const
+{
+    return equipo2;
+}
+Lista<Arbitro*>& Partido::getArbitros()
+{
+    return arbitros;
+}
+EstadisticasPartido& Partido::getStatsEq1()
+{
+    return statsEq1;
+}
+EstadisticasPartido& Partido::getStatsEq2()
+{
+    return statsEq2;
+}
+Equipo* Partido::getGanador() const
+{
+    return ganador;
+}
+bool Partido::isProrroga() const
+{
+    return prorroga;
+}
+bool Partido::isSimulado() const
+{
+    return simulado;
+}
 
-// ---- Setters ----
-void Partido::setFecha(string f) { fecha = f; }
-void Partido::setHora(string h)  { hora = h; }
-void Partido::setSede(string s)  { sede = s; }
-void Partido::agregarArbitro(Arbitro* a) { arbitros.agregar(a); }
+//Setters
+void Partido::setFecha(string f)
+{
+    fecha = f;
+}
+void Partido::setHora(string h)
+{
+    hora = h;
+}
+void Partido::setSede(string s)
+{
+    sede = s;
+}
+void Partido::agregarArbitro(Arbitro* a)
+{
+    arbitros.agregar(a);
+}
 
-// ---- Ecuación (1): λ_A = µ * (GF_A/µ)^α * (GC_B/µ)^β ----
-float Partido::calcularLambda(Equipo* atacante, Equipo* defensor) const {
+//Ecuación (1): λ_A = µ * (GF_A/µ)^α * (GC_B/µ)^β
+float Partido::calcularLambda(Equipo* atacante, Equipo* defensor) const
+{
     float gfA = atacante->getStatsHistorico().promedioGF();
     float gcB = defensor->getStatsHistorico().promedioGC();
 
@@ -85,8 +134,9 @@ float Partido::calcularLambda(Equipo* atacante, Equipo* defensor) const {
     return lambda;
 }
 
-// ---- Elige 11 jugadores aleatorios de la plantilla ----
-Lista<EstJugPartido*>* Partido::elegirConvocados(Equipo* equipo, int minutos) {
+// Elige 11 jugadores aleatorios de la plantilla
+Lista<EstJugPartido*>* Partido::elegirConvocados(Equipo* equipo, int minutos)
+{
     Lista<EstJugPartido*>* convocados = new Lista<EstJugPartido*>(11);
     Lista<Jugador*>& plantilla = equipo->getPlantilla();
     int n = plantilla.getTamanio(); // 26
@@ -111,17 +161,20 @@ Lista<EstJugPartido*>* Partido::elegirConvocados(Equipo* equipo, int minutos) {
     return convocados;
 }
 
-// ---- Simula goles y los distribuye entre jugadores ----
+//Simula goles y los distribuye entre jugadores
 int Partido::simularGoles(float lambda, Lista<EstJugPartido*>& jugadores,
-                          long& iters) {
+                          long& iters)
+{
     int golesEquipo = 0;
     int golesRestantes = (int)round(lambda); // Goles esperados redondeados
 
     // Intenta asignar goles a jugadores con probabilidad 4% c/u
     // hasta alcanzar los goles esperados
-    for (int i = 0; i < jugadores.getTamanio() && golesRestantes > 0; i++) {
+    for (int i = 0; i < jugadores.getTamanio() && golesRestantes > 0; i++)
+    {
         iters++;
-        if (randFloat() < P_GOL_JUG) {
+        if (randFloat() < P_GOL_JUG)
+        {
             jugadores[i]->goles++;
             golesEquipo++;
             golesRestantes--;
@@ -130,7 +183,8 @@ int Partido::simularGoles(float lambda, Lista<EstJugPartido*>& jugadores,
 
     // Si no se distribuyeron todos, el primer jugador toma el resto
     // (garantiza que el marcador refleje λ)
-    if (golesRestantes > 0 && jugadores.getTamanio() > 0) {
+    if (golesRestantes > 0 && jugadores.getTamanio() > 0)
+    {
         jugadores[0]->goles += golesRestantes;
         golesEquipo += golesRestantes;
     }
@@ -138,29 +192,36 @@ int Partido::simularGoles(float lambda, Lista<EstJugPartido*>& jugadores,
     return golesEquipo;
 }
 
-// ---- Simula tarjetas y faltas ----
+// Simula tarjetas y faltas
 void Partido::simularTarjetasYFaltas(Lista<EstJugPartido*>& jugadores,
-                                     long& iters) {
-    for (int i = 0; i < jugadores.getTamanio(); i++) {
+                                     long& iters)
+{
+    for (int i = 0; i < jugadores.getTamanio(); i++)
+    {
         iters++;
         EstJugPartido* ejp = jugadores[i];
 
-        // --- Amarillas ---
-        if (randFloat() < P_AMARILLA1) {
+        // Amarillas
+        if (randFloat() < P_AMARILLA1)
+        {
             ejp->tarjAmarillas++;
             // Segunda amarilla → roja
-            if (randFloat() < P_AMARILLA2) {
+            if (randFloat() < P_AMARILLA2)
+            {
                 ejp->tarjAmarillas++;
                 ejp->tarjRojas++;
             }
         }
 
-        // --- Faltas ---
-        if (randFloat() < P_FALTA1) {
+        // Faltas
+        if (randFloat() < P_FALTA1)
+        {
             ejp->faltas++;
-            if (randFloat() < P_FALTA2) {
+            if (randFloat() < P_FALTA2)
+            {
                 ejp->faltas++;
-                if (randFloat() < P_FALTA3) {
+                if (randFloat() < P_FALTA3)
+                {
                     ejp->faltas++;
                 }
             }
@@ -168,9 +229,10 @@ void Partido::simularTarjetasYFaltas(Lista<EstJugPartido*>& jugadores,
     }
 }
 
-// ---- Calcula posesión proporcional al ranking FIFA ----
+//Calcula posesión proporcional al ranking FIFA
 // Menor ranking = mejor equipo = más posesión
-void Partido::calcularPosesion() {
+void Partido::calcularPosesion()
+{
     int r1 = equipo1->getRankingFIFA();
     int r2 = equipo2->getRankingFIFA();
 
@@ -181,8 +243,9 @@ void Partido::calcularPosesion() {
     statsEq2.posesionBall = (r1 / total) * 100.0f;
 }
 
-// ---- Rompe empate en fases eliminatorias ----
-Equipo* Partido::romperEmpate(long& iters) {
+//Rompe empate en fases eliminatorias
+Equipo* Partido::romperEmpate(long& iters)
+{
     iters++;
     int r1 = equipo1->getRankingFIFA();
     int r2 = equipo2->getRankingFIFA();
@@ -191,7 +254,8 @@ Equipo* Partido::romperEmpate(long& iters) {
     // (mejor ranking = número menor = más probabilidad)
     float probEq1 = (float)r2 / (float)(r1 + r2);
 
-    if (randFloat() < probEq1) {
+    if (randFloat() < probEq1)
+    {
         statsEq1.golesAFavor++; // Ajusta marcador
         return equipo1;
     } else {
@@ -200,8 +264,9 @@ Equipo* Partido::romperEmpate(long& iters) {
     }
 }
 
-// ---- Simulación de partido de fase de grupos ----
-void Partido::simular(long& iteraciones) {
+// Simulación de partido de fase de grupos
+void Partido::simular(long& iteraciones)
+{
     if (simulado) return;
 
     // 1. Elegir 11 convocados por equipo (90 minutos)
@@ -243,13 +308,16 @@ void Partido::simular(long& iteraciones) {
     else               ganador = nullptr; // Empate
 
     // 8. Actualizar puntos de grupo
-    if (ganador == equipo1) {
+    if (ganador == equipo1)
+    {
         equipo1->agregarPuntosGrupo(3);
         equipo2->agregarPuntosGrupo(0);
-    } else if (ganador == equipo2) {
+    } else if (ganador == equipo2)
+    {
         equipo1->agregarPuntosGrupo(0);
         equipo2->agregarPuntosGrupo(3);
-    } else {
+    } else
+    {
         equipo1->agregarPuntosGrupo(1);
         equipo2->agregarPuntosGrupo(1);
     }
@@ -268,12 +336,14 @@ void Partido::simular(long& iteraciones) {
     equipo2->actualizarStats(deltaEq2);
 
     // 10. Actualizar estadísticas históricas de jugadores
-    for (int i = 0; i < statsEq1.jugadores.getTamanio(); i++) {
+    for (int i = 0; i < statsEq1.jugadores.getTamanio(); i++)
+    {
         iteraciones++;
         EstJugPartido* ejp = statsEq1.jugadores[i];
         ejp->jugador->actualizarStats(ejp->toEstadisticasJugador());
     }
-    for (int i = 0; i < statsEq2.jugadores.getTamanio(); i++) {
+    for (int i = 0; i < statsEq2.jugadores.getTamanio(); i++)
+    {
         iteraciones++;
         EstJugPartido* ejp = statsEq2.jugadores[i];
         ejp->jugador->actualizarStats(ejp->toEstadisticasJugador());
@@ -282,8 +352,9 @@ void Partido::simular(long& iteraciones) {
     simulado = true;
 }
 
-// ---- Simulación eliminatoria (sin empate posible) ----
-void Partido::simularEliminatorio(long& iteraciones) {
+//Simulación eliminatoria (sin empate posible)
+void Partido::simularEliminatorio(long& iteraciones)
+{
     // Primero simula como partido normal
     simular(iteraciones);
 
@@ -292,10 +363,12 @@ void Partido::simularEliminatorio(long& iteraciones) {
         prorroga = true;
 
         // Actualiza minutos a 120 para todos los jugadores
-        for (int i = 0; i < statsEq1.jugadores.getTamanio(); i++) {
+        for (int i = 0; i < statsEq1.jugadores.getTamanio(); i++)
+        {
             statsEq1.jugadores[i]->minutosJugados = 120;
         }
-        for (int i = 0; i < statsEq2.jugadores.getTamanio(); i++) {
+        for (int i = 0; i < statsEq2.jugadores.getTamanio(); i++)
+        {
             statsEq2.jugadores[i]->minutosJugados = 120;
         }
 
@@ -304,8 +377,9 @@ void Partido::simularEliminatorio(long& iteraciones) {
     }
 }
 
-// ---- Imprime datos del partido ----
-void Partido::imprimir() const {
+// Imprime datos del partido
+void Partido::imprimir() const
+{
     cout << "========================================" << endl;
     cout << "Fecha: " << fecha << " | Hora: " << hora << endl;
     cout << "Sede: " << sede << endl;
@@ -321,10 +395,11 @@ void Partido::imprimir() const {
          << statsEq2.posesionBall << "%" << endl;
 }
 
-// ---- Imprime goleadores por número de camiseta ----
+//Imprime goleadores por número de camiseta
 void Partido::imprimirGoleadores() const {
     cout << "Goleadores " << equipo1->getPais() << ": ";
-    for (int i = 0; i < statsEq1.jugadores.getTamanio(); i++) {
+    for (int i = 0; i < statsEq1.jugadores.getTamanio(); i++)
+    {
         EstJugPartido* ejp = statsEq1.jugadores[i];
         if (ejp->goles > 0)
             cout << "#" << ejp->jugador->getNumCamiseta()
@@ -333,7 +408,8 @@ void Partido::imprimirGoleadores() const {
     cout << endl;
 
     cout << "Goleadores " << equipo2->getPais() << ": ";
-    for (int i = 0; i < statsEq2.jugadores.getTamanio(); i++) {
+    for (int i = 0; i < statsEq2.jugadores.getTamanio(); i++)
+    {
         EstJugPartido* ejp = statsEq2.jugadores[i];
         if (ejp->goles > 0)
             cout << "#" << ejp->jugador->getNumCamiseta()
@@ -342,7 +418,8 @@ void Partido::imprimirGoleadores() const {
     cout << endl;
 }
 
-long Partido::memoriaBytes() const {
+long Partido::memoriaBytes() const
+{
     long mem = sizeof(Partido) + fecha.size() + hora.size() + sede.size();
     mem += arbitros.memoriaBytes();
     mem += statsEq1.memoriaBytes();
